@@ -1,6 +1,5 @@
 package com.sakhatech.dao.mongo.impl;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,14 +38,14 @@ public class UserProfileDaoImpl implements UserProfileDao {
 		userToBesaved.append(COL_EMAIL, user.getEmail());
 		userToBesaved.append(COL_MOBILE, user.getMobile());
 		userToBesaved.append(COL_DOB, user.getDob());
-		userToBesaved.append(COL_PHOTO_PATH, user.getPhotoPath().getPath());
+		userToBesaved.append(COL_USER_IMAGE, user.getPhotoEncodedBase64());
 		
 		try{
 			collection.insert(userToBesaved);
 			return GlobalConstants.SUCCESS;
 		} catch (Exception e) {
 			e.printStackTrace();
-			return "Internal Server exception "+e.getMessage();
+			return e.getMessage();
 		}
 	}
 
@@ -59,15 +58,14 @@ public class UserProfileDaoImpl implements UserProfileDao {
 		
 		if(userFromCollection != null) {
 			user = new UserProfileDto();
-			user.setName(userFromCollection.get("name").toString());
-			user.setEmail(userFromCollection.get("email").toString());
-			user.setMobile(userFromCollection.get("mobile").toString());
-			user.setDob((Date)userFromCollection.get("dob"));	
-			user.setPhotoPath(new File(userFromCollection.get("imagePath").toString()));
+			user.setName(userFromCollection.get(COL_NAME).toString());
+			user.setEmail(userFromCollection.get(COL_EMAIL).toString());
+			user.setMobile(userFromCollection.get(COL_MOBILE).toString());
+			user.setDob((Date)userFromCollection.get(COL_DOB));
+			user.setPhotoEncodedBase64(
+					userFromCollection.get(COL_USER_IMAGE).toString());
 		}
-		
-		return user;
-			
+		return user;		
 	}
 	
 	@Override
@@ -87,6 +85,8 @@ public class UserProfileDaoImpl implements UserProfileDao {
 			user.setEmail(userFromColl.get(COL_EMAIL).toString());
 			user.setMobile(userFromColl.get(COL_MOBILE).toString());
 			user.setDob((Date)userFromColl.get(COL_DOB));
+			user.setPhotoEncodedBase64(userFromColl.get(COL_USER_IMAGE) != null ? 
+					userFromColl.get(COL_USER_IMAGE).toString() : null);
 			
 			responseUser.add(user);
 		}

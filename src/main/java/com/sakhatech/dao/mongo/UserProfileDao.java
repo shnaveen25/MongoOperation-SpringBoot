@@ -19,6 +19,7 @@ public interface UserProfileDao {
 	public static final String COL_MOBILE = "mobile";
 	public static final String COL_DOB= "dob";
 	public static final String COL_PHOTO_PATH = "imagePath";
+	public static final String COL_USER_IMAGE = "userImage";
 	
 	/**
 	 * The service which stores the details entered by the user

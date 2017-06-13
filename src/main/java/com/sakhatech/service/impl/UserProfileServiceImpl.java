@@ -2,23 +2,30 @@ package com.sakhatech.service.impl;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.sakhatech.GlobalConstants;
 import com.sakhatech.dao.mongo.UserProfileDao;
 import com.sakhatech.dto.UserProfileDto;
+import com.sakhatech.enums.ResponseStatusCode;
 import com.sakhatech.response.ResponseData;
 import com.sakhatech.response.ResponseError;
+import com.sakhatech.response.UserProfileResponse;
+import com.sakhatech.util.EncodeDecodeMultipartFile;
 import com.sakhatech.util.UserPDFGenUtility;
 
 /**
@@ -63,9 +70,6 @@ public class UserProfileServiceImpl {
 			file.addTitlePage();
 			file.addUserProfile();
 			document = file.getDocument();
-
-			System.out.println("The size of generated document : " + document.getPageNumber());
-
 			document.close();
 
 			response.setHeader("Expires", "0");
@@ -78,15 +82,25 @@ public class UserProfileServiceImpl {
 			os.flush();
 			os.close();
 			
-			return ResponseData.getSuccessResponseObject(1004, user);
+			return ResponseData.getSuccessResponseObject(
+					ResponseStatusCode.RESPONSE_SECCESS_1.getValue(), user);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseError.getErrorResponseObject(3004, "Exception while generating PDF");
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.RESPONSE_FAILUER_1.getValue(), 
+					GlobalConstants.PDF_GENERATOR_ERROR);
 		}
 
 	}
 	
 	/**
+	 * The Service method to store user data to a colletion
+	 * 
+	 * @WorkFlow
+	 * * The data entered by user will be stored in a MongoDB <br/>
+	 * * The file of type entered by user will be stored in the local folder
+	 * Specified in the file path <br />
+	 * * The path in which the file is stired will be stored in the mongo Collection 
 	 * 
 	 * @author Naveen
 	 * @param user
@@ -96,6 +110,7 @@ public class UserProfileServiceImpl {
 	 * @return {@link ResponseEntity}
 	 * @throws Exception
 	 */
+	@Deprecated
 	public ResponseEntity<ResponseData<String>> addUser(UserProfileDto user, HttpServletRequest request) throws Exception {
 		
 		UserProfileDto isUserExists = userProfileDao.getUser(user.getEmail());
@@ -120,19 +135,82 @@ public class UserProfileServiceImpl {
 	}
 	
 	/**
+	 * The service to store user data by encoding the image file using {@link Base64} encoder
+	 * and store it into a MongoCollection.
+	 * 
+	 * @author Naveen
+	 * @param user
+	 * @createdDate 12-Jun-2017
+	 * @modifiedDate 12-Jun-2017
+	 * @return
+	 * @throws IOException 
+	 */
+	public ResponseEntity<ResponseData<String>> addUser(UserProfileDto user) throws IOException {
+		
+		UserProfileDto isUserExists = userProfileDao.getUser(user.getEmail());
+		
+		if(isUserExists != null)
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.RESPONSE_FAILUER_4.getValue(),
+					GlobalConstants.USER_EXISTS);
+		
+		String userImageBase64 = null;
+		
+		userImageBase64 = EncodeDecodeMultipartFile.encryptMultipartFile(user.getPhoto());
+		user.setPhotoEncodedBase64(userImageBase64);
+			
+		String msg = userProfileDao.addUSer(user);
+			
+		if(msg.equals(GlobalConstants.SUCCESS))
+			return ResponseData.getSuccessResponseObject(
+					ResponseStatusCode.RESPONSE_SUCCESS_2.getValue(), 
+					GlobalConstants.USER_ADDED);
+		else 				
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.RESPONSE_FAILUER_2.getValue(), msg);
+	
+	}
+	
+	/**
 	 * 
 	 * @author Naveen
 	 * @createdDate 9-Jun-2017
-	 * @modifiedDate 9-Jun-2017
+	 * @modifiedDate 13-Jun-2017
 	 * @return {@link List<{@link UserProfileDto}>
+	 * @throws IOException 
 	 */
-	public ResponseEntity<ResponseData<List<UserProfileDto>>> getAllUsers(){
-		
+	public ResponseEntity<ResponseData<List<UserProfileResponse>>> getAllUsers() throws IOException{
+			
 		List<UserProfileDto> usersFromCollection = userProfileDao.getAllUsers();
 		
-		if(usersFromCollection == null)
-			return ResponseError.getErrorResponseObject(2007, "No Users found");
+		UserProfileResponse userProfile = null;
+		List<UserProfileResponse> responseDate = new ArrayList<UserProfileResponse>();
 		
-		return ResponseData.getSuccessResponseObject(1006, usersFromCollection);
+		if(usersFromCollection == null)
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.RESPONSE_FAILUER_3.getValue(), 
+					GlobalConstants.NO_USER_FOUND);
+		
+		String userImageBase64 = null;
+		for(UserProfileDto eachUser : usersFromCollection){
+			userProfile = new UserProfileResponse();
+			
+			userProfile.setName(eachUser.getName());
+			userProfile.setMobile(eachUser.getMobile());
+			userProfile.setEmail(eachUser.getEmail());
+			
+			userImageBase64 = eachUser.getPhotoEncodedBase64();
+			
+			if(userImageBase64 != null){
+				MultipartFile userImg = EncodeDecodeMultipartFile.decryptMultiPartFile(
+						userImageBase64, eachUser.getName(), "", eachUser.getEmail());
+				
+				userProfile.setProfilepic(userImg.getBytes());
+				
+				responseDate.add(userProfile);
+			}
+		}
+		return ResponseData.getSuccessResponseObject(
+			ResponseStatusCode.RESPONSE_SUCCESS_3.getValue(), responseDate);
 	}
 }

@@ -10,7 +10,7 @@ import com.mongodb.MongoClient;
 /**
  * The utility class for instantiating the Database
  * 
- * @author naveen
+ * @author Naveen
  * @createdDate 6-Jun-2017
  * @modifedDate 6-Jun-2017
  *

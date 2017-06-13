@@ -12,7 +12,7 @@ import com.sakhatech.dto.FileUploaderDto;
 import com.sakhatech.response.ResponseData;
 import com.sakhatech.response.ResponseError;
 import com.sakhatech.service.impl.PDFUploaderServiceImpl;
-import com.sakhatech.util.PDFFileManager;
+import com.sakhatech.util.FileManager;
 
 /**
  * 
@@ -43,7 +43,7 @@ public class PDFUploadController {
 		System.out.println("Added By : "+addedBy);
 		
 		try{
-			if(PDFFileManager.isPDFFile(file)){
+			if(FileManager.isPDFFile(file)){
 				System.out.println("Uploaded file is a PDF");
 				return uploaderService.uploadPdf(file, addedBy);
 			} else{

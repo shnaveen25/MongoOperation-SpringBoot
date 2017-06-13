@@ -3,6 +3,7 @@ package com.sakhatech.response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -13,22 +14,26 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @modifiedDate 6-Jun-2017
  * @param <T>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseData<T> {
 		
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonProperty("statusCode")
+	@JsonIgnore
 	private Integer statusCode;
 	
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonProperty("success")
+	@JsonIgnore
 	private boolean success;
 	
-	@JsonInclude(JsonInclude.Include.NON_NULL)
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	@JsonProperty("data")
 	private T data;
 	
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@JsonProperty("error")
+	@JsonIgnore
 	private ResponseError error;
 
 	public T getData() {
@@ -89,7 +94,7 @@ public class ResponseData<T> {
 		responseData.setSuccess(true);
 		responseData.setData(data);
 			
-		return new ResponseEntity<ResponseData<T>>(responseData , HttpStatus.OK);
+		return new ResponseEntity<ResponseData<T>>(responseData, HttpStatus.OK);
 	}
 		
 }

@@ -1,7 +1,6 @@
 package com.sakhatech.dto;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.Date;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -13,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @modifiedDate 8-Jun-2017
  * 
  */
-public class UserProfileDto implements Serializable {
+public class UserProfileDto {
 	
 	private String name;
 	private String email;
@@ -21,11 +20,12 @@ public class UserProfileDto implements Serializable {
 	private Date dob;
 	private MultipartFile photo;
 	private File photoPath;
+	private String photoEncodedBase64;
 
 	@Override
 	public String toString() {
-		return "UserProfileDto [name=" + name + ", email=" + email + ", mobile=" + mobile + ", photo="
-				+ photo + "]";
+		return "UserProfileDto [name=" + name + ", email=" + email + ", mobile=" + mobile + ", dob=" + dob + ", photo="
+				+ photo + ", photoPath=" + photoPath + ", photoEncodedBase64=" + photoEncodedBase64 + "]";
 	}
 	public String getName() {
 		return name;
@@ -62,5 +62,11 @@ public class UserProfileDto implements Serializable {
 	}
 	public void setPhotoPath(File filePath) {
 		this.photoPath = filePath;
+	}
+	public String getPhotoEncodedBase64() {
+		return photoEncodedBase64;
+	}
+	public void setPhotoEncodedBase64(String photoEncodedBase64) {
+		this.photoEncodedBase64 = photoEncodedBase64;
 	}
 }

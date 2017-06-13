@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.sakhatech.GlobalConstants;
 import com.sakhatech.dto.UserProfileDto;
+import com.sakhatech.enums.ResponseStatusCode;
 import com.sakhatech.response.ResponseData;
 import com.sakhatech.response.ResponseError;
+import com.sakhatech.response.UserProfileResponse;
 import com.sakhatech.service.impl.UserProfileServiceImpl;
+import com.sakhatech.util.FileManager;
 
 /**
  * The REST Controller performs following opeeartions<br>
@@ -52,6 +56,11 @@ public class UserProfileController {
 			@RequestParam(value="mobile") String mobile,
 			@RequestParam(value = "photo") MultipartFile photo) {
 		
+		if(!FileManager.isImageFile(photo))
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.RESPONSE_FAILUER_5.getValue(), 
+					GlobalConstants.IS_NOT_IMAGE);
+		
 		UserProfileDto user = new UserProfileDto();
 		user.setName(name);
 		user.setEmail(email);
@@ -60,10 +69,12 @@ public class UserProfileController {
 		user.setDob(dob);
 		
 		try {
-			return userProfileService.addUser(user, request);
+			return userProfileService.addUser(user);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseError.getErrorResponseObject(3005, "Generic Exception");
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.GENERIC_EXCEPTION_1.getValue(), 
+					GlobalConstants.GENERIC_EXCEPTION);
 		}
 	}
 
@@ -80,17 +91,19 @@ public class UserProfileController {
 	public ResponseEntity<ResponseData<UserProfileDto>> getUserDetailsInPDF(@RequestParam String email,
 			HttpServletResponse response) {
 
-		System.out.println("Requested User : " + email);
-
 		try {
 			return userProfileService.getUserProfileAsPDF(email, response);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ResponseError.getErrorResponseObject(3005, "Generic Exception");
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.GENERIC_EXCEPTION_2.getValue(),
+					GlobalConstants.GENERIC_EXCEPTION);
 		}
 	}
 	
 	/**
+	 * The service API to reterive all users form DB
+	 * 
 	 * @author Naveen
 	 * @createdDate 9-Jun-2017
 	 * @modifiedDate 9-Jun-2017
@@ -98,19 +111,15 @@ public class UserProfileController {
 	 */
 	@CrossOrigin(value={"http://localhost:3000"})
 	@RequestMapping(value="getallusers", method=RequestMethod.GET)
-	public ResponseEntity<ResponseData<List<UserProfileDto>>> getAllUsers(){
+	public ResponseEntity<ResponseData<List<UserProfileResponse>>> getAllUsers(){
 		
 		try{
 			return userProfileService.getAllUsers();
 		}catch (Exception e) {
-			return ResponseError.getErrorResponseObject(3006, "Generic Exception");
+			e.printStackTrace();
+			return ResponseError.getErrorResponseObject(
+					ResponseStatusCode.GENERIC_EXCEPTION_3.getValue(), 
+					GlobalConstants.GENERIC_EXCEPTION);
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
 }

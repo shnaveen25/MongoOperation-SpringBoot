@@ -2,6 +2,8 @@ package com.sakhatech.util;
 
 import java.util.Date;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Font;
@@ -10,10 +12,11 @@ import com.itextpdf.text.Paragraph;
 import com.sakhatech.dto.UserProfileDto;
 
 /**
+ * The utility class to generate a PDF
  * 
  * @author Naveen
  * @createdDate 7-Jun-2017
- * @modifiedDate 8-Jun-2017
+ * @modifiedDate 13-Jun-2017
  */
 public class UserPDFGenUtility {
 	
@@ -69,10 +72,15 @@ public class UserPDFGenUtility {
 		pUserProfile.add(new Paragraph("Name : " +userDetails.getName()));
 		pUserProfile.add(new Paragraph("Email : "+userDetails.getEmail()));
 		pUserProfile.add(new Paragraph("Mobile : "+userDetails.getMobile()));	
-		Image userPic = Image.getInstance(userDetails.getPhotoPath().getAbsolutePath());
-		Paragraph userImage = new Paragraph();
-		userImage.add(userPic);
-		pUserProfile.add(userImage);
+		
+		MultipartFile userImg = EncodeDecodeMultipartFile.decryptMultiPartFile(
+				userDetails.getPhotoEncodedBase64(), userDetails.getName(), "", userDetails.getEmail());
+		
+		Image img = Image.getInstance(userImg.getBytes());
+		Paragraph pUserImg = new Paragraph();
+		pUserImg.add(img);
+		pUserProfile.add(pUserImg);
+		
 		document.add(pUserProfile);
 	}
 
