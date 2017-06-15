@@ -1,7 +1,10 @@
 package com.sakhatech.util;
 
+import java.awt.Color;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.itextpdf.text.BaseColor;
@@ -16,9 +19,11 @@ import com.sakhatech.dto.UserProfileDto;
  * 
  * @author Naveen
  * @createdDate 7-Jun-2017
- * @modifiedDate 13-Jun-2017
+ * @modifiedDate 15-Jun-2017
  */
 public class UserPDFGenUtility {
+	
+	private static final Logger logger = LoggerFactory.getLogger(UserPDFGenUtility.class);
 	
 	private UserProfileDto userDetails;
 	private Document document;
@@ -34,6 +39,7 @@ public class UserPDFGenUtility {
 	public UserPDFGenUtility(UserProfileDto userDetails, Document document) {
 		this.userDetails = userDetails;
 		this.document = document;
+		logger.info("User details has been instantated for Generating PDF");
 	}
 	
 	private void addEmptyLine(Paragraph paragraph, int number) {
@@ -49,6 +55,8 @@ public class UserPDFGenUtility {
 		document.addAuthor("Naveen Heroorkar");
 		document.addCreator("sh.naveen16@gmail.com");
 		document.addCreationDate();
+		
+		logger.info("File details has been added");
 	}
 
 	public void addTitlePage() throws Exception {
@@ -64,6 +72,8 @@ public class UserPDFGenUtility {
 		
 		document.newPage();
 		
+		logger.info("Title Page has been added");
+		
 	}
 	
 	public void addUserProfile() throws Exception {
@@ -78,17 +88,34 @@ public class UserPDFGenUtility {
 		
 		Image img = Image.getInstance(userImg.getBytes());
 		Paragraph pUserImg = new Paragraph();
+		pUserImg.add("Profile Pic : ");
+		addEmptyLine(pUserImg, 1);
 		pUserImg.add(img);
 		pUserProfile.add(pUserImg);
 		
+		java.awt.Image qrCode = QRCodeGenreator.generateQRForUser(userDetails);
+		
+		Image qrImage = Image.getInstance(qrCode, new Color(0, 0, 0));
+		
+		Paragraph pQR = new Paragraph();
+		pQR.add("QR Code : ");
+		addEmptyLine(pQR, 1);
+		pQR.add(qrImage);
+				
+		pUserProfile.add(pQR);
+		
 		document.add(pUserProfile);
+		
+		logger.info("File Contend had been added");
 	}
 
 	public Document getDocument() throws Exception {
 		if(document == null)
 			throw new Exception("Document is Empty");
-		else
-			return document;
+		
+		logger.info("File Has been generated");
+			
+		return document;
 	}
 
 }

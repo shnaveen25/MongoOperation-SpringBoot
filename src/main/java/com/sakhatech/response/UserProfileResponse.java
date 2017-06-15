@@ -1,5 +1,8 @@
 package com.sakhatech.response;
 
+import java.util.Arrays;
+import java.util.Date;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -25,13 +28,17 @@ public class UserProfileResponse {
 	public String mobile;
 	
 	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+	@JsonProperty("dob")
+	public Date dob;	
+	
+	@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 	@JsonProperty("profilePic")
 	public byte[] profilepic;
 
 	@Override
 	public String toString() {
-		return "UserProfileResponse [name=" + name + ", email=" + email + ", mobile=" + mobile + ", profilepic="
-				+ profilepic + "]";
+		return "UserProfileResponse [name=" + name + ", email=" + email + ", mobile=" + mobile + ", dob=" + dob
+				+ ", profilepic=" + Arrays.toString(profilepic) + "]";
 	}
 
 	public String getName() {
@@ -65,5 +72,15 @@ public class UserProfileResponse {
 	public void setProfilepic(byte[] bs) {
 		this.profilepic = bs;
 	}
+
+	public Date getDob() {
+		return dob;
+	}
+
+	public void setDob(Date dob) {
+		this.dob = dob;
+	}
+	
+	
 	
 }

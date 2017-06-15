@@ -6,6 +6,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,7 +41,9 @@ public class UserProfileController {
 
 	@Autowired
 	private UserProfileServiceImpl userProfileService;
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
+	
 	/**
 	 * The service API to add user to the collection
 	 * 
@@ -70,8 +74,10 @@ public class UserProfileController {
 		
 		try {
 			return userProfileService.addUser(user);
-		} catch (Exception e) {
+		} catch (Exception e) {	
+			logger.error("Exception while adding user : " , e.getMessage());
 			e.printStackTrace();
+			
 			return ResponseError.getErrorResponseObject(
 					ResponseStatusCode.GENERIC_EXCEPTION_1.getValue(), 
 					GlobalConstants.GENERIC_EXCEPTION);
@@ -88,12 +94,13 @@ public class UserProfileController {
 	 */
 	@CrossOrigin(value={"http://localhost:3000"})
 	@RequestMapping(value = "/generatePDF", method = RequestMethod.GET)
-	public ResponseEntity<ResponseData<UserProfileDto>> getUserDetailsInPDF(@RequestParam String email,
+	public ResponseEntity<ResponseData<byte[]>> getUserDetailsInPDF(@RequestParam String email,
 			HttpServletResponse response) {
 
 		try {
 			return userProfileService.getUserProfileAsPDF(email, response);
 		} catch (Exception e) {
+			logger.error("Exception while generating PDF : ", e.getMessage());
 			e.printStackTrace();
 			return ResponseError.getErrorResponseObject(
 					ResponseStatusCode.GENERIC_EXCEPTION_2.getValue(),
@@ -116,6 +123,7 @@ public class UserProfileController {
 		try{
 			return userProfileService.getAllUsers();
 		}catch (Exception e) {
+			logger.error("Exception while reteriving users : " , e.getMessage());
 			e.printStackTrace();
 			return ResponseError.getErrorResponseObject(
 					ResponseStatusCode.GENERIC_EXCEPTION_3.getValue(), 

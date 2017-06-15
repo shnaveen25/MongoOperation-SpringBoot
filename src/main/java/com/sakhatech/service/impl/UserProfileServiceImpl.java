@@ -3,7 +3,6 @@ package com.sakhatech.service.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,8 @@ import com.sakhatech.util.UserPDFGenUtility;
  */
 @Service("UserProfileService")
 public class UserProfileServiceImpl {
+	
+	private static final Logger logger = LoggerFactory.getLogger(UserProfileServiceImpl.class); 
 
 	@Autowired
 	private UserProfileDao userProfileDao;
@@ -51,28 +54,27 @@ public class UserProfileServiceImpl {
 	 * @return {@link ResponseEntity}
 	 * @throws Exception 
 	 */
-	public ResponseEntity<ResponseData<UserProfileDto>> getUserProfileAsPDF(String email,
+	public ResponseEntity<ResponseData<byte[]>> getUserProfileAsPDF(String email,
 			HttpServletResponse response) throws Exception {
 
 		UserProfileDto user = userProfileDao.getUser(email);
      
 		Document document = new Document();
 
-		try {
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			PdfWriter.getInstance(document, baos);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PdfWriter.getInstance(document, baos);
 
-			document.open();
+		document.open();
 
-			UserPDFGenUtility file = new UserPDFGenUtility(user, document);
+		UserPDFGenUtility file = new UserPDFGenUtility(user, document);
+		file.addFileDetails();
+		file.addTitlePage();
+		file.addUserProfile();
+		
+		document = file.getDocument();
+		document.close();
 
-			file.addFileDetails();
-			file.addTitlePage();
-			file.addUserProfile();
-			document = file.getDocument();
-			document.close();
-
-			response.setHeader("Expires", "0");
+/*			response.setHeader("Expires", "0");
 			response.setHeader("Cache-Control", "must-revalidate, post-check=0, pre-check=0");
 			response.setHeader("Pragma", "public");
 			response.setContentType("application/pdf");
@@ -81,15 +83,12 @@ public class UserProfileServiceImpl {
 			baos.writeTo(os);
 			os.flush();
 			os.close();
+*/			
 			
-			return ResponseData.getSuccessResponseObject(
-					ResponseStatusCode.RESPONSE_SECCESS_1.getValue(), user);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ResponseError.getErrorResponseObject(
-					ResponseStatusCode.RESPONSE_FAILUER_1.getValue(), 
-					GlobalConstants.PDF_GENERATOR_ERROR);
-		}
+		byte[] userPic = baos.toByteArray();
+			
+		return ResponseData.getSuccessResponseObject(
+				ResponseStatusCode.RESPONSE_SECCESS_1.getValue(), userPic);	
 
 	}
 	
@@ -198,6 +197,7 @@ public class UserProfileServiceImpl {
 			userProfile.setName(eachUser.getName());
 			userProfile.setMobile(eachUser.getMobile());
 			userProfile.setEmail(eachUser.getEmail());
+			userProfile.setDob(eachUser.getDob());
 			
 			userImageBase64 = eachUser.getPhotoEncodedBase64();
 			
